@@ -1,3 +1,3 @@
-# MindGo
+### Mind Go
 
-mindustry gamemode like a CS GO
+Cs go gamemode plugin for mindustry servers
