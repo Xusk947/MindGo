@@ -2,7 +2,11 @@ package mindgo.logic;
 
 import arc.struct.Seq;
 import arc.util.Time;
+import mindgo.items.Item;
+import mindustry.content.UnitTypes;
+import mindustry.game.Team;
 import mindustry.gen.Player;
+import mindustry.type.UnitType;
 
 public class PlayerData {
 
@@ -15,6 +19,7 @@ public class PlayerData {
 
     public Player player;
     public Data data;
+    public boolean seted;
 
     public PlayerData(Player player) {
         this.player = player;
@@ -27,16 +32,21 @@ public class PlayerData {
     }
 
     public void update() {
-        data.time += Time.delta;
+
     }
 
-    class Data {
-        public float time;
+    public class Data {
+        public UnitType type;
+        public float armor;
         public int money;
+        public Team team;
+        public Seq<Item> items;
 
         public Data() {
-            this.time = 0;
+            this.type = UnitTypes.dagger;
+            this.armor = 0;
             this.money = 0;
+            this.items = new Seq<>();
         }
     }
 }
