@@ -2,12 +2,19 @@ package mindgo.scene;
 
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
+import arc.util.Interval;
 import mindgo.Main;
+import mindgo.logic.PlayerData;
 import mindgo.rooms.Room;
 import mindgo.rooms.UnitRoom;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.content.UnitTypes;
+import mindustry.game.Team;
+import mindustry.game.Teams;
+import mindustry.gen.Call;
+import mindustry.gen.Groups;
+import mindustry.gen.Player;
 import mindustry.world.Tile;
 
 public class Shop extends Scene {
@@ -15,10 +22,19 @@ public class Shop extends Scene {
     public Game game;
     public Seq<Room> rooms;
 
+    Interval interval;
+    ObjectMap<Integer, Player> red, blue, none;
+
     public Shop() {
         super();
         specialMap = "shop";
         rooms = new Seq<>();
+
+        interval = new Interval(2);
+
+        red = new ObjectMap<>();
+        blue = new ObjectMap<>();
+        none = new ObjectMap<>();
 
         generateRoomData();
     }
@@ -26,7 +42,64 @@ public class Shop extends Scene {
     @Override
     public void update() {
         super.update();
-        if (time > WAITING_TIME) Main.ME.goToScene(game);
+        if (time > WAITING_TIME) {
+            Main.ME.goToScene(game);
+            // Sort all players who not select team
+            for (Player player : none.values()) {
+                if (red.size > blue.size) {
+                    blue.put(player.id, player);
+                } else {
+                    red.put(player.id, player);
+                }
+            }
+            // Assign Team in PlayerData.team
+            for (Player player : blue.values()) {
+                PlayerData.map.get(player.id).data.team = Team.blue;
+            }
+
+            for (Player player : red.values()) {
+                PlayerData.map.get(player.id).data.team = Team.crux;
+            }
+        } else if (interval.get(0, 1)) {
+            // Update HudText
+            for (Player player : Groups.player) {
+                String label = "[white]" + ((int) time / 60);
+                // get block id for team selection
+                int id = player.unit().tileOn().floorID();
+                // sand - red, grass - blue, not one of these - none
+                if (id == Blocks.sand.id) {
+                    if (red.size <= blue.size) {
+                        // remove from none player when @Player not select team
+                        if (none.containsKey(player.id)) {
+                            none.remove(player.id);
+                        }
+                        // and put in #Red team
+                        red.put(player.id, player);
+                        label = " | [white] selected [red]#Red [white] team";
+                    } else {
+                        // if team is full say it to @Player
+                        label += " | [red]#Red [white]team is full";
+                    }
+                } else if (id == Blocks.grass.id) /* Add this code for blue team too */ {
+                    if (none.containsKey(player.id)) {
+                        none.remove(player.id);
+                    } else {
+                        label += " | [blue]#Blue [white]team is full";
+                    }
+                    blue.put(player.id, player);
+                    label = " | [white] selected [blue]#Blue [white] team";
+                } else /* if player out of Team block put @Player in none team */{
+                    if (red.containsKey(player.id)) {
+                        red.remove(player.id);
+                    } else if (blue.containsKey(player.id)) {
+                        blue.remove(player.id);
+                    }
+                    label += " | [white] select your team!";
+                }
+                // and finnaly send data
+                Call.setHudText(player.con, label);
+            }
+        };
     }
 
     @Override

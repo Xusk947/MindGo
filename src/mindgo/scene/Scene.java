@@ -61,7 +61,7 @@ public class Scene {
         /* For custom generation */
         customGenerate();
         /* Set Scene rules */
-        Vars.state.rules = rules;
+        Vars.state.rules = rules.copy();
         Vars.logic.play();
 
         // Assign team and send Data

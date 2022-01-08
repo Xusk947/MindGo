@@ -1,7 +1,9 @@
 {
   "name": "MindGo",
   "author": "Xusk",
-  "main": "example.ExamplePlugin",
+  "main": "mindgo.Main",
   "description": "A plugin to demonstrate some basic features.",
-  "version": 1.0
+  "version": 1.0,
+  "minGameVersion:":126,
+  "java":true
 }

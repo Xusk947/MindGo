@@ -1,11 +1,14 @@
 package mindgo;
 
 import arc.Events;
+import arc.struct.Seq;
 import arc.util.CommandHandler;
 import mindgo.logic.PlayerData;
+import mindgo.scene.Lobby;
 import mindgo.scene.Scene;
 import mindustry.Vars;
 import mindustry.game.EventType;
+import mindustry.gen.Player;
 import mindustry.mod.Plugin;
 
 public class Main extends Plugin {
@@ -18,6 +21,7 @@ public class Main extends Plugin {
     @Override
     public void init() {
         ME = this;
+        PlayerData.all = new Seq<>();
         eventsLoad();
         run();
     }
@@ -38,6 +42,7 @@ public class Main extends Plugin {
     }
 
     public void run() {
+        goToScene(new Lobby());
         Vars.netServer.openServer();
     }
 
@@ -53,7 +58,7 @@ public class Main extends Plugin {
         });
         // When player joined create PlayerData for them
         Events.on(EventType.PlayerJoin.class, (e) -> {
-            PlayerData.all.add(new PlayerData(e.player));
+            PlayerData.add(e.player);
             if (currentScene != null) {
                 currentScene.onPlayerJoin(e.player);
             }
@@ -66,7 +71,7 @@ public class Main extends Plugin {
         });
 
         Events.on(EventType.PlayerLeave.class, (e) -> {
-            PlayerData.all.find(e::equals);
+            PlayerData.remove(e.player);
         });
     }
 }

@@ -1,5 +1,6 @@
 package mindgo.logic;
 
+import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.Time;
 import mindgo.items.Item;
@@ -11,15 +12,23 @@ import mindustry.type.UnitType;
 public class PlayerData {
 
     public static Seq<PlayerData> all;
-
-    static Seq<PlayerData> getAll() {
-        if (all == null) all = new Seq<>();
-        return all;
-    }
+    public static ObjectMap<Integer, PlayerData> map;
 
     public Player player;
     public Data data;
     public boolean seted;
+
+    public static void add(Player player) {
+        PlayerData pd = new PlayerData(player);
+        all.add(pd);
+        map.put(player.id, pd);
+    }
+
+    public static void remove(Player player) {
+        PlayerData pd = all.get(player.id);
+        all.remove(pd);
+        map.remove(player.id);
+    }
 
     public PlayerData(Player player) {
         this.player = player;
