@@ -25,7 +25,7 @@ public class PlayerData {
     }
 
     public static void remove(Player player) {
-        PlayerData pd = all.get(player.id);
+        PlayerData pd = map.get(player.id);
         all.remove(pd);
         map.remove(player.id);
     }

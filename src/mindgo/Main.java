@@ -8,6 +8,7 @@ import mindgo.items.Items;
 import mindgo.logic.PlayerData;
 import mindgo.scene.Lobby;
 import mindgo.scene.Scene;
+import mindgo.scene.Shop;
 import mindustry.Vars;
 import mindustry.game.EventType;
 import mindustry.gen.Player;
@@ -46,7 +47,7 @@ public class Main extends Plugin {
     }
 
     public void run() {
-        goToScene(new Lobby());
+        goToScene(new Shop());
         Vars.netServer.openServer();
     }
 
@@ -63,7 +64,7 @@ public class Main extends Plugin {
             }
         });
         // When player joined create PlayerData for them
-        Events.on(EventType.PlayerJoin.class, (e) -> {
+        Events.on(EventType.PlayerConnect.class, (e) -> {
             PlayerData.add(e.player);
             if (currentScene != null) {
                 currentScene.onPlayerJoin(e.player);

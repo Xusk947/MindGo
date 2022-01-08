@@ -40,24 +40,25 @@ public class Scene {
 
         /* Reset all logic and start write Data */
         Vars.logic.reset();
-        Call.worldDataBegin();
         /* for maps with game mode or etc. */
+        Map map = null;
         if (specialMap.equals("none")) {
             boolean unseted = true;
             while(unseted) {
                 /* remove all map repeats variants */
                 unseted = false;
-                Map map = Vars.maps.all().random();
+                map = Vars.maps.customMaps().random();
                 if (cantLoad.size > 0) {
                     for (int i = 0; i < cantLoad.size; i++) {
                         if (Objects.equals(map.name(), cantLoad.get(0))) unseted = true;
                     }
                 }
-                Vars.world.loadMap(map);
             }
         } else /* load map with special name */{
-            Vars.world.loadMap(Vars.maps.byName(specialMap));
+            map = Vars.maps.byName(specialMap);
         }
+        Vars.world.loadMap(map);
+        Call.worldDataBegin();
         /* For custom generation */
         customGenerate();
         /* Set Scene rules */

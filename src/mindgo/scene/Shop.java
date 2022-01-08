@@ -41,10 +41,12 @@ public class Shop extends Scene {
 
     @Override
     public void update() {
+        if (Groups.player.size() < 1) return;
         super.update();
         boolean needUpdateHud = false;
 
         if (time > WAITING_TIME) {
+            if (game == null) game = new Game();
             Main.ME.goToScene(game);
             // Sort all players who not select team
             for (Player player : none.values()) {
@@ -65,14 +67,16 @@ public class Shop extends Scene {
         } else if (interval.get(60)) {
             needUpdateHud = true;
         };
-
         for (PlayerData pd : PlayerData.all) {
             Player player = pd.player;
             // Update HudText
             if (needUpdateHud) {
-                String label = "[white]" + ((int) time / 60);
+                String label = "[accent]" + ((int) (time / 60f) + " [white]: [accent]" + ((int) WAITING_TIME / 60f));
                 // get block id for team selection
-                int id = player.unit().tileOn().floorID();
+                int id = 0;
+                if (player.x > 0 && player.unit() != null && player.unit().tileOn() != null) {
+                    id = player.unit().tileOn().floorID();
+                }
                 // sand - red, grass - blue, not one of these - none
                 if (id == Blocks.sand.id) {
                     if (red.size <= blue.size) {
@@ -82,19 +86,22 @@ public class Shop extends Scene {
                         }
                         // and put in #Red team
                         red.put(player.id, player);
-                        label = " | [white] selected [red]#Red [white] team";
+                        label += " | [white] selected [red]#Red [white] team";
                     } else {
                         // if team is full say it to @Player
                         label += " | [red]#Red [white]team is full";
                     }
                 } else if (id == Blocks.grass.id) /* Add this code for blue team too */ {
-                    if (none.containsKey(player.id)) {
-                        none.remove(player.id);
+                    if (blue.size <= red.size) {
+                        if (none.containsKey(player.id)) {
+                            none.remove(player.id);
+                        }
+                        blue.put(player.id, player);
+                        label += " | [white] selected [blue]#Blue [white] team";
                     } else {
+                        // if team is full say it to @Player
                         label += " | [blue]#Blue [white]team is full";
                     }
-                    blue.put(player.id, player);
-                    label = " | [white] selected [blue]#Blue [white] team";
                 } else /* if player out of Team block put @Player in none team */ {
                     if (red.containsKey(player.id)) {
                         red.remove(player.id);
@@ -109,6 +116,12 @@ public class Shop extends Scene {
             // Shop logic
 
         }
+    }
+
+    @Override
+    public void onWorldLoad() {
+        super.onWorldLoad();
+        PlayerData.all.forEach(pd -> {pd.data.team = Team.sharded;});
     }
 
     @Override

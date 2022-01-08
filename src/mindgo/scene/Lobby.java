@@ -25,10 +25,14 @@ public class Lobby extends Scene {
 
     @Override
     public void update() {
-        super.update();
         if (Groups.player.size() > 1) {
+            super.update();
             if (interval.get(60)) {
-                Call.setHudText("Start : " + ((int) (waitTime - time) / 60));
+                Call.setHudText("[white]Start : [accent]" + ((int) (time) / 60) + " [white]: [accent]" + ((int) waitTime / 60));
+
+                if (time > waitTime) {
+                    Main.ME.goToScene(new Game());
+                }
             }
         }
     }

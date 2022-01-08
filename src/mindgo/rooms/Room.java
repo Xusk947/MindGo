@@ -48,7 +48,7 @@ public class Room {
         for (int x = -SIZE; x < SIZE; x++) {
             for (int y = -SIZE; y < SIZE; y++) {
                 tiles.get(tx - x, ty - y).setFloor((Floor) Blocks.darkPanel3);
-                if (Math.abs(x) == SIZE || Math.abs(y) == SIZE) {
+                if (x == SIZE || x == -SIZE || y == SIZE || y == -SIZE) {
                     tiles.get(tx - x, ty - y).setBlock(Blocks.darkMetal);
                 }
             }

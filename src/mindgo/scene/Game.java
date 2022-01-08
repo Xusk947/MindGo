@@ -3,10 +3,14 @@ package mindgo.scene;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.Time;
+import arc.util.Timer;
 import mindgo.Main;
 import mindgo.logic.PlayerData;
+import mindustry.Vars;
+import mindustry.content.UnitTypes;
 import mindustry.game.Team;
 import mindustry.gen.*;
+import mindustry.world.blocks.storage.CoreBlock;
 
 public class Game extends Scene {
     static final int MAX_GAMES = 4;
@@ -29,6 +33,9 @@ public class Game extends Scene {
         cantLoad.add("shop");
         rules.defaultTeam = Team.derelict;
 
+        needUpdatePlayers = true;
+
+        inGame = new ObjectMap<>();
         _run = false;
     }
 
@@ -51,7 +58,7 @@ public class Game extends Scene {
                     }
                 }
             }
-            // if somebody team doesnt have untis announce them
+            // if somebody team haven't units announce them
             if (blue <= 0 || red <= 0) {
                 announceWinner((blue <= 0 ? Team.crux : Team.blue));
             }
@@ -74,7 +81,9 @@ public class Game extends Scene {
 
     @Override
     public void onPlayerDie(Player player) {
-
+        PlayerData.Data data = PlayerData.map.get(player.id).data;
+        data.armor = 0;
+        data.items.clear();
     }
 
     @Override
@@ -99,6 +108,7 @@ public class Game extends Scene {
     public void onWorldLoad() {
         super.onWorldLoad();
         _timer = 60f * 3f;
+        time = 0;
         currentGame++;
     }
 
@@ -123,6 +133,24 @@ public class Game extends Scene {
 
     private void onRun() {
         _run = true;
+        Timer.schedule(() -> {
+            if (Main.ME.currentScene != this) return;
+            for (PlayerData pd : inGame.values()) {
+                if (pd.data.team == Team.blue) {
+                    Unit unit = pd.data.type.create(pd.data.team);
+                    CoreBlock.CoreBuild core = pd.data.team.core();
+                    if (core != null) {
+                        unit.set(core.x, core.y);
+                    }
+                }
+            }
+        }, 1.2f);
+        if (Team.blue.core() != null) {
+            Team.blue.core().kill();
+        }
+        if (Team.crux.core() != null) {
+            Team.crux.core().kill();
+        }
     }
 
     private void announceWinner(Team team) {
@@ -135,9 +163,10 @@ public class Game extends Scene {
             }
         }
 
+        _run = false;
+
         Shop shop = new Shop();
         shop.game = this;
-        _run = false;
         Main.ME.goToScene(shop);
     }
 }
