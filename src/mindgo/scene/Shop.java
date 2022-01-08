@@ -1,5 +1,6 @@
 package mindgo.scene;
 
+import arc.math.Mathf;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.Interval;
@@ -52,8 +53,12 @@ public class Shop extends Scene {
             for (Player player : none.values()) {
                 if (red.size > blue.size) {
                     blue.put(player.id, player);
-                } else {
+                } else if (red.size < blue.size) {
                     red.put(player.id, player);
+                } else if (Mathf.random(2) >= 1) {
+                    red.put(player.id, player);
+                } else {
+                    blue.put(player.id, player);
                 }
             }
             // Assign Team in PlayerData.team
@@ -66,7 +71,8 @@ public class Shop extends Scene {
             }
         } else if (interval.get(60)) {
             needUpdateHud = true;
-        };
+        }
+        ;
         for (PlayerData pd : PlayerData.all) {
             Player player = pd.player;
             // Update HudText
@@ -121,7 +127,9 @@ public class Shop extends Scene {
     @Override
     public void onWorldLoad() {
         super.onWorldLoad();
-        PlayerData.all.forEach(pd -> {pd.data.team = Team.sharded;});
+        PlayerData.all.forEach(pd -> {
+            pd.data.team = Team.sharded;
+        });
     }
 
     @Override
