@@ -30,7 +30,7 @@ public class Shop extends Scene {
         specialMap = "shop";
         rooms = new Seq<>();
 
-        interval = new Interval(2);
+        interval = new Interval();
 
         red = new ObjectMap<>();
         blue = new ObjectMap<>();
@@ -42,6 +42,8 @@ public class Shop extends Scene {
     @Override
     public void update() {
         super.update();
+        boolean needUpdateHud = false;
+
         if (time > WAITING_TIME) {
             Main.ME.goToScene(game);
             // Sort all players who not select team
@@ -60,9 +62,14 @@ public class Shop extends Scene {
             for (Player player : red.values()) {
                 PlayerData.map.get(player.id).data.team = Team.crux;
             }
-        } else if (interval.get(0, 1)) {
+        } else if (interval.get(60)) {
+            needUpdateHud = true;
+        };
+
+        for (PlayerData pd : PlayerData.all) {
+            Player player = pd.player;
             // Update HudText
-            for (Player player : Groups.player) {
+            if (needUpdateHud) {
                 String label = "[white]" + ((int) time / 60);
                 // get block id for team selection
                 int id = player.unit().tileOn().floorID();
@@ -88,7 +95,7 @@ public class Shop extends Scene {
                     }
                     blue.put(player.id, player);
                     label = " | [white] selected [blue]#Blue [white] team";
-                } else /* if player out of Team block put @Player in none team */{
+                } else /* if player out of Team block put @Player in none team */ {
                     if (red.containsKey(player.id)) {
                         red.remove(player.id);
                     } else if (blue.containsKey(player.id)) {
@@ -99,7 +106,9 @@ public class Shop extends Scene {
                 // and finnaly send data
                 Call.setHudText(player.con, label);
             }
-        };
+            // Shop logic
+
+        }
     }
 
     @Override

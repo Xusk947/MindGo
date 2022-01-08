@@ -1,8 +1,10 @@
 package mindgo;
 
 import arc.Events;
+import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.CommandHandler;
+import mindgo.items.Items;
 import mindgo.logic.PlayerData;
 import mindgo.scene.Lobby;
 import mindgo.scene.Scene;
@@ -21,7 +23,9 @@ public class Main extends Plugin {
     @Override
     public void init() {
         ME = this;
+        Items.load();
         PlayerData.all = new Seq<>();
+        PlayerData.map = new ObjectMap<>();
         eventsLoad();
         run();
     }
@@ -49,10 +53,12 @@ public class Main extends Plugin {
     public void eventsLoad() {
         // General update
         Events.on(EventType.Trigger.update.getClass(), (e) -> {
-            // Firs-ting first update All player data now
-            PlayerData.all.forEach(PlayerData::update);
-            // Seconding second need update our current scene
             if (currentScene != null) {
+                // Firs-ting first update All player data now
+                if (currentScene.needUpdatePlayers) {
+                    PlayerData.all.forEach(PlayerData::update);
+                }
+                // Seconding second need update our current scene
                 currentScene.update();
             }
         });

@@ -6,9 +6,7 @@ import arc.util.Time;
 import mindgo.Main;
 import mindgo.logic.PlayerData;
 import mindustry.game.Team;
-import mindustry.gen.Call;
-import mindustry.gen.Nulls;
-import mindustry.gen.Player;
+import mindustry.gen.*;
 
 public class Game extends Scene {
     static final int MAX_GAMES = 4;
@@ -23,10 +21,14 @@ public class Game extends Scene {
 
     public Game() {
         super();
+        rules.unitCap = 9999;
+        // when game is end go to Lobby
         currentGame = 0;
+        // because this maps uses other scene
         cantLoad.add("lobby");
         cantLoad.add("shop");
         rules.defaultTeam = Team.derelict;
+
         _run = false;
     }
 
@@ -36,7 +38,22 @@ public class Game extends Scene {
         if (_run) {
             // Switch Scene when Time out
             if(time > MAX_VAT_TIME) {
+                announceWinner(Team.blue);
+            }
+            int red = 0, blue = 0;
 
+            for (Unit unit : Groups.unit) {
+                if (!unit.isNull() && !unit.dead) {
+                    if (unit.team == Team.crux) {
+                        red++;
+                    } else if (unit.team == Team.blue) {
+                        blue++;
+                    }
+                }
+            }
+            // if somebody team doesnt have untis announce them
+            if (blue <= 0 || red <= 0) {
+                announceWinner((blue <= 0 ? Team.crux : Team.blue));
             }
         } else {
             _timer -= Time.delta;
@@ -55,6 +72,10 @@ public class Game extends Scene {
         }
     }
 
+    @Override
+    public void onPlayerDie(Player player) {
+
+    }
 
     @Override
     public void assignTeam(PlayerData pd) {
@@ -65,6 +86,12 @@ public class Game extends Scene {
     public void worldLoad() {
         // Exit from this scene when counter Get max value
         if (currentGame >= MAX_GAMES) Main.ME.goToScene(new Lobby());
+        // Just in case if player not assigned
+        for (PlayerData pd : PlayerData.all) {
+            if (!inGame.containsKey(pd.player.id)) {
+                assignNewPlayer(pd);
+            }
+        }
         super.worldLoad();
     }
 
@@ -110,7 +137,7 @@ public class Game extends Scene {
 
         Shop shop = new Shop();
         shop.game = this;
-
+        _run = false;
         Main.ME.goToScene(shop);
     }
 }

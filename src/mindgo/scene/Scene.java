@@ -16,7 +16,7 @@ import java.util.Objects;
 public class Scene {
 
     public Rules rules;
-
+    public boolean needUpdatePlayers;
     final Seq<String> cantLoad;
     float time = 0;
     boolean loaded;
@@ -80,6 +80,10 @@ public class Scene {
     }
 
     public void onPlayerJoin(Player player) {};
+
+    public void onPlayerDie(Player player) {
+
+    };
 
     public void update() {
         if (!loaded) return;
