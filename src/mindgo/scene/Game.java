@@ -10,10 +10,12 @@ import mindustry.Vars;
 import mindustry.content.UnitTypes;
 import mindustry.game.Team;
 import mindustry.gen.*;
+import mindustry.world.Tile;
 import mindustry.world.blocks.storage.CoreBlock;
 
 public class Game extends Scene {
-    static final int MAX_GAMES = 4;
+    static final float MAX_TAP_RANGE = Vars.tilesize * 3 * Vars.tilesize * 3;
+    static final int MAX_GAMES = 10;
     static final float MAX_VAT_TIME = 60f * 60f * 3f; /* 3 minutes */
 
     public int currentGame;
@@ -32,7 +34,7 @@ public class Game extends Scene {
         cantLoad.add("lobby");
         cantLoad.add("shop");
         rules.defaultTeam = Team.derelict;
-
+        rules.unitAmmo = true;
         needUpdatePlayers = true;
 
         inGame = new ObjectMap<>();
@@ -71,7 +73,7 @@ public class Game extends Scene {
     @Override
     public void onPlayerJoin(Player player) {
         if (inGame.containsKey(player.id)) {
-            PlayerData pd = inGame.get(player.id);
+            PlayerData.map.get(player.id).data = inGame.get(player.id).data;
         } else {
             assignNewPlayer(PlayerData.all.find(pd -> {
                 return pd.player.id == player.id;
@@ -94,14 +96,18 @@ public class Game extends Scene {
     @Override
     public void worldLoad() {
         // Exit from this scene when counter Get max value
-        if (currentGame >= MAX_GAMES) Main.ME.goToScene(new Lobby());
-        // Just in case if player not assigned
-        for (PlayerData pd : PlayerData.all) {
-            if (!inGame.containsKey(pd.player.id)) {
-                assignNewPlayer(pd);
+        if (currentGame >= MAX_GAMES) {
+            Main.ME.goToScene(new Lobby());
+            return;
+        } else {
+            // Just in case if player not assigned
+            for (PlayerData pd : PlayerData.all) {
+                if (!inGame.containsKey(pd.player.id)) {
+                    assignNewPlayer(pd);
+                }
             }
-        }
-        super.worldLoad();
+            super.worldLoad();
+        };
     }
 
     @Override
@@ -110,6 +116,15 @@ public class Game extends Scene {
         _timer = 60f * 3f;
         time = 0;
         currentGame++;
+    }
+
+    @Override
+    public void onPlayerTap(Player player, Tile tile) {
+        if (player.unit() != null && player.unit().tileOn() != null) {
+            PlayerData pd = PlayerData.map.get(player.id);
+            pd.clickX = player.mouseX;
+            pd.clickY = player.mouseY;
+        }
     }
 
     private void assignNewPlayer(PlayerData pd) {

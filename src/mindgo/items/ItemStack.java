@@ -7,10 +7,11 @@ public class ItemStack {
     public int maxCount;
     public int count;
 
-    public ItemStack(Item item, int maxCount) {
+    public ItemStack(Item item) {
         this.item = item;
-        this.maxCount = maxCount;
+        this.maxCount = item.maxStuck;
         this.count = 0;
+        if (item == Items.nil) count = 99999;
     }
 
     public boolean canAdd() {
@@ -24,5 +25,9 @@ public class ItemStack {
     public void useItem(PlayerData pd) {
         count--;
         item.use.get(pd);
+    }
+
+    public boolean empty() {
+        return count <= 0;
     }
 }

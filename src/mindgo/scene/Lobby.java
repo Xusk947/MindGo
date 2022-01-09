@@ -6,6 +6,7 @@ import mindgo.logic.PlayerData;
 import mindustry.game.Team;
 import mindustry.gen.Call;
 import mindustry.gen.Groups;
+import mindustry.gen.Player;
 
 public class Lobby extends Scene {
     final float waitTime;

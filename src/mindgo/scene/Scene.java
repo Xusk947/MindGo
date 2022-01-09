@@ -10,6 +10,7 @@ import mindustry.gen.Call;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.maps.Map;
+import mindustry.world.Tile;
 
 import java.util.Objects;
 
@@ -80,11 +81,11 @@ public class Scene {
         loaded = true;
     }
 
-    public void onPlayerJoin(Player player) {};
+    public void onPlayerJoin(Player player) { }
 
-    public void onPlayerDie(Player player) {
+    public void onPlayerDie(Player player) { }
 
-    };
+    public void onPlayerTap(Player player, Tile tile) { }
 
     public void update() {
         if (!loaded) return;

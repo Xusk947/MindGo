@@ -42,6 +42,8 @@ public class Room {
         return (x >= sdx && y > sdy && x <= edx && y <= edy);
     }
 
+    public void label() { };
+
     public void create() {
         Tiles tiles = Vars.world.tiles;
 

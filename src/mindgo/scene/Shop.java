@@ -1,10 +1,12 @@
 package mindgo.scene;
 
+import arc.math.Mathf;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.Interval;
 import mindgo.Main;
 import mindgo.logic.PlayerData;
+import mindgo.rooms.CostRoom;
 import mindgo.rooms.Room;
 import mindgo.rooms.UnitRoom;
 import mindustry.Vars;
@@ -15,6 +17,7 @@ import mindustry.game.Teams;
 import mindustry.gen.Call;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
+import mindustry.gen.Unit;
 import mindustry.world.Tile;
 
 public class Shop extends Scene {
@@ -36,6 +39,8 @@ public class Shop extends Scene {
         blue = new ObjectMap<>();
         none = new ObjectMap<>();
 
+        needUpdatePlayers = true;
+
         generateRoomData();
     }
 
@@ -52,8 +57,14 @@ public class Shop extends Scene {
             for (Player player : none.values()) {
                 if (red.size > blue.size) {
                     blue.put(player.id, player);
-                } else {
+                } else if (blue.size > red.size) {
                     red.put(player.id, player);
+                } else {
+                    if (Mathf.random() > 0.5) {
+                        red.put(player.id, player);
+                    } else {
+                        blue.put(player.id, player);
+                    }
                 }
             }
             // Assign Team in PlayerData.team
@@ -64,8 +75,12 @@ public class Shop extends Scene {
             for (Player player : red.values()) {
                 PlayerData.map.get(player.id).data.team = Team.crux;
             }
+            return;
         } else if (interval.get(60)) {
             needUpdateHud = true;
+            for (Room room : rooms) {
+                room.label();
+            }
         };
         for (PlayerData pd : PlayerData.all) {
             Player player = pd.player;
@@ -110,18 +125,38 @@ public class Shop extends Scene {
                     }
                     label += " | [white] select your team!";
                 }
+
+                label += "\n[white]To [accent]select [white]a team stand on a block of [blue]@Grass or [red]@Sand";
                 // and finnaly send data
-                Call.setHudText(player.con, label);
+                if (player.team().core() != null) {
+                    Call.label(player.con, label, 1f, player.team().core().x, player.team().core().y);
+                }
             }
             // Shop logic
+            if (pd.data.type != player.unit().type && pd.player.team().core() != null) {
+                Unit unit = pd.data.type.create(pd.player.team());
+                unit.set(unit.team().core().x, unit.team().core().y + Vars.tilesize * (unit.team().core().block.size));
+                unit.add();
+                pd.player.unit().spawnedByCore = true;
+                pd.player.unit(unit);
+            }
+        }
+    }
 
+    @Override
+    public void onPlayerJoin(Player player) {
+        if (game != null && game.inGame.containsKey(player.id)) {
+            PlayerData.map.get(player.id).data = game.inGame.get(player.id).data;
         }
     }
 
     @Override
     public void onWorldLoad() {
         super.onWorldLoad();
-        PlayerData.all.forEach(pd -> {pd.data.team = Team.sharded;});
+        PlayerData.all.forEach(pd -> {
+            pd.player.team(Team.sharded);
+            pd.data.team = Team.sharded;
+        });
     }
 
     @Override
@@ -143,6 +178,19 @@ public class Shop extends Scene {
         }
         // Fill rooms with blocks
         rooms.forEach(Room::create);
+    }
+
+    @Override
+    public void onPlayerTap(Player player, Tile tile) {
+        for (Room room : rooms) {
+            room.update(PlayerData.map.get(player.id));
+        }
+
+        if (player.unit() != null && player.unit().tileOn() != null) {
+            PlayerData pd = PlayerData.map.get(player.id);
+            pd.clickX = player.mouseX;
+            pd.clickY = player.mouseY;
+        }
     }
 
     private void generateRoomData() {

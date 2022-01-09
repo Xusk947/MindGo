@@ -4,6 +4,7 @@ import arc.Events;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.CommandHandler;
+import arc.util.Log;
 import mindgo.items.Items;
 import mindgo.logic.PlayerData;
 import mindgo.scene.Lobby;
@@ -44,6 +45,7 @@ public class Main extends Plugin {
     public void goToScene(Scene scene) {
         this.currentScene = scene;
         currentScene.worldLoad();
+        Log.info("go to: " + scene);
     }
 
     public void run() {
@@ -79,6 +81,18 @@ public class Main extends Plugin {
 
         Events.on(EventType.PlayerLeave.class, (e) -> {
             PlayerData.remove(e.player);
+        });
+
+        Events.on(EventType.TapEvent.class, (e) -> {
+            if (currentScene != null) {
+                currentScene.onPlayerTap(e.player, e.tile);
+            }
+        });
+
+        Events.on(EventType.UnitDestroyEvent.class, (e) -> {
+            if (currentScene != null && e.unit.isPlayer()) {
+                currentScene.onPlayerDie(e.unit.getPlayer());
+            }
         });
     }
 }
