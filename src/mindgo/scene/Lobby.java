@@ -45,6 +45,8 @@ public class Lobby extends Scene {
     }
 
     private void runGame() {
+        PlayerData.reset();
+
         Game game = new Game();
 
         Main.ME.goToScene(game);

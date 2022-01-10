@@ -13,10 +13,7 @@ import mindgo.items.Items;
 import mindustry.content.Fx;
 import mindustry.content.UnitTypes;
 import mindustry.game.Team;
-import mindustry.gen.Call;
-import mindustry.gen.Iconc;
-import mindustry.gen.Nulls;
-import mindustry.gen.Player;
+import mindustry.gen.*;
 import mindustry.type.UnitType;
 
 public class PlayerData {
@@ -38,6 +35,7 @@ public class PlayerData {
     public boolean wantBuy;
 
     boolean readyForItemUse;
+    float itemUseTimer;
     Interval interval;
 
     public static void add(Player player) {
@@ -52,16 +50,22 @@ public class PlayerData {
         map.remove(player.id);
     }
 
+    public static void reset() {
+        for (PlayerData pd : all) {
+            pd.data = new Data();
+        }
+    }
+
     public PlayerData(Player player) {
         this.player = player;
         data = new Data();
-        interval = new Interval();
+        interval = new Interval(2);
     }
 
     public PlayerData(Player player, Data data) {
         this.player = player;
         this.data = data;
-        interval = new Interval();
+        interval = new Interval(2);
     }
 
     public void update() {
@@ -80,6 +84,10 @@ public class PlayerData {
                 needHudUpdate = true;
             }
 
+            itemUseTimer -= Time.delta;
+            if (interval.get(1, 5) && itemUseTimer > 0) {
+                needHudUpdate = true;
+            }
             if (clickX > -100) {
                 float clickDst2 = player.dst2(clickX, clickY);
                 float mouseDst2 = player.dst2(player.mouseX, player.mouseY);
@@ -88,7 +96,7 @@ public class PlayerData {
                     switchItem(player.mouseX > player.x);
                     Call.label(player.con, getItem().item.icon + "", 1.5f, player.mouseX, player.mouseY);
                     readyForItemUse = false;
-                } else if (!readyForItemUse && clickDst2 < 3136) {
+                } else if (!readyForItemUse && itemUseTimer < 0 && clickDst2 < 3136) {
                     Call.label(player.con, getItem().item.icon + " ready for use!", 1.5f, player.mouseX, player.mouseY);
                     readyForItemUse = true;
                     needHudUpdate = true;
@@ -96,12 +104,13 @@ public class PlayerData {
                 clickX = -200;
             } else if (readyForItemUse) {
                 if (player.shooting()) {
-                    if (interval.get(5)) {
+                    if (interval.get(0, 5)) {
                         Call.effect(player.con, Fx.bubble, player.mouseX, player.mouseY, 0, player.team().color);
                     }
                 } else {
                     readyForItemUse = false;
                     useItem();
+                    itemUseTimer = 60f * 3f; // 3 secs cooldown
                 }
             }
             oldMouseX = player.mouseX;
@@ -112,7 +121,7 @@ public class PlayerData {
             StringBuilder label = new StringBuilder("[red]" + ((int) (player.unit().health / player.unit().type.health * 100)) + "%");
             label.append(" [white]").append((int) data.armor).append(Iconc.statusShielded);
             label.append(" [white]| money: ").append(data.money).append(Iconc.itemSurgeAlloy);
-
+            label.append(" | ammo: ").append(data.ammo).append("\n");
             Seq<ItemStack> stacks = data.items.values().toSeq();
 
             for (int i = 0; i < stacks.size; i++) {
@@ -168,8 +177,9 @@ public class PlayerData {
         };
     }
 
-    public class Data {
+    public static class Data {
         public UnitType type;
+        public Unit unit;
         public float armor;
         public int money;
         public Team team;

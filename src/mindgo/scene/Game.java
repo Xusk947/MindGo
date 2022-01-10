@@ -5,6 +5,7 @@ import arc.struct.Seq;
 import arc.util.Time;
 import arc.util.Timer;
 import mindgo.Main;
+import mindgo.items.GameItem;
 import mindgo.logic.PlayerData;
 import mindustry.Vars;
 import mindustry.content.UnitTypes;
@@ -20,6 +21,7 @@ public class Game extends Scene {
 
     public int currentGame;
     public ObjectMap<Integer, PlayerData> inGame;
+    public Seq<GameItem> items;
 
     // need after World Load cool down for sync core destroy
     private float _timer;
@@ -36,6 +38,8 @@ public class Game extends Scene {
         rules.defaultTeam = Team.derelict;
         rules.unitAmmo = true;
         needUpdatePlayers = true;
+
+        items = new Seq<>();
 
         inGame = new ObjectMap<>();
         _run = false;
@@ -157,6 +161,8 @@ public class Game extends Scene {
                     if (core != null) {
                         unit.set(core.x, core.y);
                     }
+                    unit.add();
+                    pd.player.unit(unit);
                 }
             }
         }, 1.2f);
@@ -170,8 +176,7 @@ public class Game extends Scene {
 
     private void announceWinner(Team team) {
         String winner = team == Team.crux ? "[red]#@Red [yellow] win!" : team == Team.blue ? "[blue]#@Blue [yellow] win!" : "[white]Nobody@won";
-        Call.sendMessage(winner, "[gray]MS:GO", Nulls.player);
-
+        Call.sendMessage(winner, "[gray]MS:GO", null);
         for (PlayerData pd : inGame.values()) {
             if (pd.data.team == team) {
                 pd.data.money += 200;
@@ -180,6 +185,7 @@ public class Game extends Scene {
 
         _run = false;
 
+        items.clear();
         Shop shop = new Shop();
         shop.game = this;
         Main.ME.goToScene(shop);
